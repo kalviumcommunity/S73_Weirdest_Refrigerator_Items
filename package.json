@@ -1,0 +1,24 @@
+{
+  "name": "s73_weirdest_refrigerator_items",
+  "version": "1.0.0",
+  "description": "## Overview This project aims to create a playful and interactive web application where users can document and share the most bizarre items they keep in their refrigerators. The platform will allow users to explore and compare lists of quirky fridge contents from others, fostering a sense of fun and community. The expected outcomes include building a space where people can laugh at their own oddities, discover unique habits, and engage in a leaderboard showcasing the strangest items. Ultimately, this project demonstrates a complete workflow of user data management, interaction, and community engagement in a web application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kalviumcommunity/S73_Weirdest_Refrigerator_Items.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kalviumcommunity/S73_Weirdest_Refrigerator_Items/issues"
+  },
+  "homepage": "https://github.com/kalviumcommunity/S73_Weirdest_Refrigerator_Items#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
