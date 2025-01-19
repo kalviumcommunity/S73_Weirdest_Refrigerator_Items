@@ -25,3 +25,8 @@ This project aims to create a playful and interactive web application where user
 
 ## Why This Project:
 This project was chosen for its balance of simplicity and creativity. It aligns perfectly with the "silly yet meaningful" guideline, ensuring it’s both fun to work on and easy to understand. Building this app will help me develop essential programming skills like authentication, CRUD operations, and database interaction. By working on this, I’ll also gain experience in deploying a fully functional web application. Plus, it’s a project guaranteed to make people laugh—a win-win situation for learning and enjoyment!
+
+---
+
+## Deployed link
+https://s73-weirdest-refrigerator-items.onrender.com
