@@ -15,18 +15,20 @@ app.get('/ping', (req, res) => {
 
 let flag = false;
 
-mongoose.connect(URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-.then(() => {
-    console.log("Connected to DB!")
-    flag = true
-})
-.catch((err) => {
-    console.log(`Error connecting to DB: ${err}`)
-    flag = false
-});
+const connectDB = async () => {
+    try {
+        await mongoose.connect(URL, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log("Connected to DB!");
+        flag = true;
+    } catch (error) {
+        console.error(`Error connecting to DB: ${error.message}`);
+        process.exit(1);
+    }
+};
+connectDB();
 
 app.get('/', (req, res) => {
     res.json({
