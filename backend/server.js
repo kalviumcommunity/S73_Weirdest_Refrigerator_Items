@@ -1,10 +1,15 @@
-const express = require('express')
-require('dotenv').config();
-const mongoose = require('mongoose');
+import express from 'express';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import route from './routes/routes.js';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
 const URL = process.env.URL;
+
+app.use(express.json());
 
 app.get('/ping', (req, res) => {
     res.json({
@@ -36,6 +41,8 @@ app.get('/', (req, res) => {
         DB_status: flag
     })
 });
+
+app.use('/api/user', route)
 
 app.listen(PORT, () => {
     console.log(`Server running of PORT: ${PORT}`)
