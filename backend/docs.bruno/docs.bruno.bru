@@ -1,0 +1,18 @@
+meta {
+  name: docs.bruno
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/user/create
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name":"Atharva Dudhe ",
+    "email":"atharva123@gmail.com"
+  }
+}

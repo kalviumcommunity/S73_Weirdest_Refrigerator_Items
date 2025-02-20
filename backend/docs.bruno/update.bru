@@ -1,0 +1,18 @@
+meta {
+  name: update
+  type: http
+  seq: 5
+}
+
+put {
+  url: http://localhost:3000/api/user/update/67b71b200fde0088df316ed6
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name":"John",
+    "email":"John@gmail.com"
+  }
+}
