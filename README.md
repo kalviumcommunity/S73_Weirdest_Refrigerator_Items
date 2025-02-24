@@ -30,3 +30,6 @@ This project was chosen for its balance of simplicity and creativity. It aligns 
 
 ## Deployed link
 https://s73-weirdest-refrigerator-items.onrender.com
+
+## Front-end Deployed link
+https://s73weirdestrefrigeratoritems.netlify.app/
