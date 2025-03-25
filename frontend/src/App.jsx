@@ -4,22 +4,57 @@ import WeirdFridgeItem from "./components/WeirdFridgeItem";
 export default function App() {
   useEffect(() => {
     document.title = "Weirdest Fridge Items";
+    fetchWeirdItems();
   }, []);
 
-  const [weirdItems, setWeirdItems] = useState([
-    { name: "Toothpaste", description: "Why is there toothpaste in the fridge?!", imageUrl: "https://placehold.co/100" },
-    { name: "Coconut", description: "Some people like their coconuts chilled, I guess?", imageUrl: "https://placehold.co/100" },
-    { name: "Remote Control", description: "You were looking for this in the living room, weren't you?", imageUrl: "https://placehold.co/100" },
-    { name: "Old Socks", description: "Are you trying to keep them fresh or what?", imageUrl: "https://placehold.co/100" },
-  ]);
-
+  const [weirdItems, setWeirdItems] = useState([]);
   const [newItem, setNewItem] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const addItem = () => {
+  // Fetch data from backend
+  const fetchWeirdItems = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/entities");
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        setWeirdItems(data);
+      } else {
+        console.error("API response is not an array:", data);
+        setWeirdItems([]);
+      }
+    } catch (error) {
+      console.error("Error fetching weird fridge items:", error);
+      setWeirdItems([]);
+    }
+  };
+
+  const addItem = async () => {
     if (newItem.trim() !== "") {
-      setWeirdItems([...weirdItems, { name: newItem, description: "A newly added weird item!", imageUrl: "https://placehold.co/100" }]);
-      setNewItem("");
+      const newItemObj = {
+        name: newItem,
+        description: "A newly added weird item!",
+        imageUrl: "https://placehold.co/100",
+      };
+
+      try {
+        const response = await fetch("http://localhost:3000/api/entities", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newItemObj),
+        });
+
+        if (response.ok) {
+          fetchWeirdItems();
+          setNewItem("");
+        } else {
+          console.error("Failed to add item");
+        }
+      } catch (error) {
+        console.error("Error adding weird fridge item:", error);
+      }
     }
   };
 
@@ -51,17 +86,21 @@ export default function App() {
 
         <div className="bg-purple-100 p-6 rounded-lg w-full max-w-sm text-center mt-6 shadow-lg border border-purple-500">
           <h2 className="text-2xl font-bold text-purple-700">Top Weirdest Items</h2>
-          <ul className="mt-3 list-disc text-left text-gray-800 space-y-2 pl-5">
-            {weirdItems.map((item, index) => (
-              <li 
-                key={index} 
-                className="cursor-pointer text-blue-600 hover:underline font-medium"
-                onClick={() => setSelectedItem(item)}
-              >
-                {item.name}
-              </li>
-            ))}
-          </ul>
+          {weirdItems.length > 0 ? (
+            <ul className="mt-3 list-disc text-left text-gray-800 space-y-2 pl-5">
+              {weirdItems.map((item) => (
+                <li
+                  key={item?._id}
+                  className="cursor-pointer text-blue-600 hover:underline font-medium"
+                  onClick={() => setSelectedItem(item)}
+                >
+                  {item?.name}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 mt-3">No weird items found.</p>
+          )}
         </div>
 
         {selectedItem && <WeirdFridgeItem {...selectedItem} />}
