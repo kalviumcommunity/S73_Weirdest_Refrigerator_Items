@@ -1,3 +1,4 @@
+
 export default function ItemList({ weirdItems, setSelectedItem }) {
     return (
       <div className="bg-purple-100 p-6 rounded-lg w-full max-w-sm text-center mt-6 shadow-lg border border-purple-500">
