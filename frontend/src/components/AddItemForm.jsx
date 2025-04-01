@@ -1,32 +1,40 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 export default function AddItemForm({ fetchWeirdItems }) {
   const [newItem, setNewItem] = useState("");
 
   const addItem = async () => {
-    if (newItem.trim() !== "") {
-      const newItemObj = {
-        name: newItem,
-        description: "A newly added weird item!",
-        imageUrl: "https://placehold.co/100",
-      };
+    if (newItem.trim().length < 3) {
+      toast.error("Name must be at least 3 characters long.");
+      return;
+    }
 
-      try {
-        const response = await fetch("http://localhost:3000/api/entities", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newItemObj),
-        });
+    const newItemObj = {
+      name: newItem,
+      description: "A newly added weird item!",
+      imageUrl: "https://placehold.co/100",
+    };
 
-        if (response.ok) {
-          fetchWeirdItems();
-          setNewItem("");
-        } else {
-          console.error("Failed to add item");
-        }
-      } catch (error) {
-        console.error("Error adding weird fridge item:", error);
+    try {
+      const response = await fetch("http://localhost:3000/api/entities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newItemObj),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        fetchWeirdItems();
+        setNewItem("");
+        toast.success("Item added successfully!");
+      } else {
+        toast.error(data.error || "Failed to add item.");
       }
+    } catch (error) {
+      toast.error("Error adding weird fridge item.");
+      console.error("Error:", error);
     }
   };
 
