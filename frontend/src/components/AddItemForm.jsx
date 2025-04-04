@@ -1,124 +1,114 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-export default function AddItemForm({ fetchWeirdItems }) {
-  const [newItem, setNewItem] = useState({
-    name: "",
-    description: "",
-    imageUrl: "",
-  });
-
-  const [loading, setLoading] = useState(false);
+export default function AddItemForm() {
+  const [itemName, setItemName] = useState("");
+  const [description, setDescription] = useState("");
+  const [userId, setUserId] = useState("");
+  const [users, setUsers] = useState([]);
   const navigate = useNavigate();
 
-  // Handle form input changes
-  const handleChange = (e) => {
-    setNewItem({ ...newItem, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/users");
+        const data = await res.json();
+        setUsers(data);
+      } catch (error) {
+        toast.error("Failed to load users");
+      }
+    };
+    fetchUsers();
+  }, []);
 
-  // Function to validate the image URL
-  const validateImageUrl = async (url) => {
-    try {
-      const response = await fetch(url, { method: "HEAD" });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  };
-
-  // Submit item to backend
-  const addItem = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!newItem.name.trim() || !newItem.description.trim() || !newItem.imageUrl.trim()) {
-      toast.error("Please fill all fields!");
+    if (!userId) {
+      toast.error("Please select a user!");
       return;
     }
 
-    setLoading(true);
-
-    // Validate image URL
-    const isValidImage = await validateImageUrl(newItem.imageUrl);
-    if (!isValidImage) {
-      toast.error("Invalid image URL. Please provide a valid image link.");
-      setLoading(false);
-      return;
-    }
+    console.log("Sending to backend:", {
+      name: itemName,
+      description,
+      created_by: userId,
+    });
 
     try {
       const response = await fetch("http://localhost:3000/api/entities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newItem),
+        body: JSON.stringify({
+          name: itemName,
+          description,
+          created_by: userId,
+        }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        toast.success("Item added successfully!");
-        setNewItem({ name: "", description: "", imageUrl: "" }); // Clear form
-        fetchWeirdItems(); // Refresh list
-        navigate("/"); // Navigate back to home
+        toast.success("Item added!");
+        setItemName("");
+        setDescription("");
+        setUserId("");
+
+        navigate("/");
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || "Failed to add item.");
+        toast.error(data.error || "Error adding item.");
       }
     } catch (error) {
-      toast.error("Error adding item.");
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
+      toast.error("Something went wrong!");
+      console.error("POST error:", error);
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full max-w-md p-6 border rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold">Add a New Weird Item</h2>
+    <form onSubmit={handleSubmit} className="p-6 max-w-md bg-white rounded shadow text-black">
+      <h2 className="text-2xl mb-4 font-bold">Add New Item</h2>
 
-      <form onSubmit={addItem} className="w-full flex flex-col gap-3">
-        <input
-          type="text"
-          name="name"
-          placeholder="Enter item name..."
-          value={newItem.name}
-          onChange={handleChange}
-          className="p-2 border rounded-md w-full"
-          required
-        />
+      {/* Dropdown for selecting user */}
+      <select
+        value={userId}
+        onChange={(e) => setUserId(e.target.value)}
+        className="p-2 border rounded-md w-full text-black"
+        required
+      >
+        <option value="">Select User</option>
+        {users.map((user) => (
+          <option key={user._id} value={user._id}>
+            {user.username}
+          </option>
+        ))}
+      </select>
 
-        <textarea
-          name="description"
-          placeholder="Enter description..."
-          value={newItem.description}
-          onChange={handleChange}
-          className="p-2 border rounded-md w-full"
-          required
-        />
+      {/* Item Name */}
+      <input
+        type="text"
+        placeholder="Item name"
+        value={itemName}
+        onChange={(e) => setItemName(e.target.value)}
+        className="mb-4 p-2 border rounded w-full text-black"
+        required
+      />
 
-        <input
-          type="text"
-          name="imageUrl"
-          placeholder="Enter image URL..."
-          value={newItem.imageUrl}
-          onChange={handleChange}
-          className="p-2 border rounded-md w-full"
-          required
-        />
-
-        <button
-          type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded-md font-bold shadow-md hover:bg-green-700 transition"
-          disabled={loading}
-        >
-          {loading ? "Adding..." : "Add Item"}
-        </button>
-      </form>
+      {/* Description */}
+      <textarea
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="mb-4 p-2 border rounded w-full text-black"
+        required
+      ></textarea>
 
       <button
-        onClick={() => navigate("/")}
-        className="text-blue-500 hover:underline mt-4"
+        type="submit"
+        className="bg-blue-600 text-white px-4 py-2 rounded-md font-bold shadow-md hover:bg-blue-700 transition"
       >
-        ← Back to Home
+        Add Item
       </button>
-    </div>
+    </form>
   );
 }

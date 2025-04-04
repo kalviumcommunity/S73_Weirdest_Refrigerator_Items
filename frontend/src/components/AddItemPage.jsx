@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 export default function AddItemForm({ fetchWeirdItems }) {
@@ -6,7 +6,25 @@ export default function AddItemForm({ fetchWeirdItems }) {
     name: "",
     description: "",
     imageUrl: "",
+    created_by: "", // New field
   });
+
+  const [users, setUsers] = useState([]);
+
+  // Fetch users for the dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/users");
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        toast.error("Failed to fetch users.");
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -17,7 +35,9 @@ export default function AddItemForm({ fetchWeirdItems }) {
   const addItem = async (e) => {
     e.preventDefault();
 
-    if (!newItem.name.trim() || !newItem.description.trim() || !newItem.imageUrl.trim()) {
+    const { name, description, imageUrl, created_by } = newItem;
+
+    if (!name.trim() || !description.trim() || !imageUrl.trim() || !created_by.trim()) {
       toast.error("Please fill all fields!");
       return;
     }
@@ -31,7 +51,7 @@ export default function AddItemForm({ fetchWeirdItems }) {
 
       if (response.ok) {
         toast.success("Item added successfully!");
-        setNewItem({ name: "", description: "", imageUrl: "" }); // Clear form
+        setNewItem({ name: "", description: "", imageUrl: "", created_by: "" });
         fetchWeirdItems(); // Refresh the list
       } else {
         const errorData = await response.json();
@@ -76,6 +96,21 @@ export default function AddItemForm({ fetchWeirdItems }) {
           className="p-2 border rounded-md w-full"
           required
         />
+
+        <select
+          name="created_by"
+          value={newItem.created_by}
+          onChange={handleChange}
+          className="p-2 border rounded-md w-full"
+          required
+        >
+          <option value="">Select User</option>
+          {users.map((user) => (
+            <option key={user._id} value={user._id}>
+              {user.name}
+            </option>
+          ))}
+        </select>
 
         <button
           type="submit"

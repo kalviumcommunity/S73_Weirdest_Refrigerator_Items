@@ -1,36 +1,30 @@
-import Entity from '../models/entitySchema.js'; 
+import Entity from '../models/entitySchema.js';
 
-// Validation function
-const validateEntity = (name, description, imageUrl) => {
-    if (!name || name.trim().length < 3) {
-        return "Name must be at least 3 characters long.";
-    }
+const validateEntity = (name, description, imageUrl, created_by) => {
     if (!description || description.trim().length < 5) {
         return "Description must be at least 5 characters long.";
     }
-    if (!imageUrl || !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(imageUrl)) {
-        return "Invalid image URL. Must be a valid image format (jpg, jpeg, png, gif).";
+    if (!created_by || created_by.trim() === "") {
+        return "Created_by (User ID) is required.";
     }
     return null;
 };
 
-// Create a new entity with validation and logging
 export const createEntity = async (req, res) => {
-    const { name, description, imageUrl } = req.body;
-    
-    console.log("Received request to create entity:", req.body); // Debugging log
+    const { name, description, imageUrl, created_by } = req.body;
 
-    // Validate entity input
-    const validationError = validateEntity(name, description, imageUrl);
+    console.log("Received request to create entity:", req.body);
+
+    const validationError = validateEntity(name, description, imageUrl, created_by);
     if (validationError) {
         console.error("Validation Error:", validationError);
         return res.status(400).json({ error: validationError });
     }
 
     try {
-        const entityData = new Entity({ name, description, imageUrl });
+        const entityData = new Entity({ name, description, imageUrl, created_by });
         const savedEntity = await entityData.save();
-        console.log("Entity saved successfully:", savedEntity); // Debugging log
+        console.log("Entity saved successfully:", savedEntity);
         res.status(201).json(savedEntity);
     } catch (err) {
         console.error("Database Error:", err);
@@ -38,13 +32,21 @@ export const createEntity = async (req, res) => {
     }
 };
 
-// Get all entities
 export const getEntities = async (req, res) => {
+    const { created_by } = req.query;
+
     try {
-        const entities = await Entity.find();
+        let filter = {};
+        if (created_by) {
+            filter.created_by = created_by;
+        }
+
+        const entities = await Entity.find(filter).populate("created_by");
+
         if (entities.length === 0) {
             return res.status(404).json({ message: "No entities found!" });
         }
+
         res.status(200).json(entities);
     } catch (err) {
         console.error("Error fetching entities:", err);
@@ -52,7 +54,6 @@ export const getEntities = async (req, res) => {
     }
 };
 
-// Update an entity
 export const updateEntity = async (req, res) => {
     try {
         const id = req.params.id;
@@ -72,7 +73,6 @@ export const updateEntity = async (req, res) => {
     }
 };
 
-// Delete an entity
 export const deleteEntity = async (req, res) => {
     try {
         const id = req.params.id;
