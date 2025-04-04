@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 
 const entitySchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
-    }
+  name: String,
+  description: String,
+  imageUrl: String,
+  created_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 });
 
-export default mongoose.model('Entity', entitySchema);
+const Entity = mongoose.model("Entity", entitySchema);
+export default Entity;

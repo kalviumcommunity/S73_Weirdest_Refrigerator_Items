@@ -1,58 +1,114 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-export default function AddItemForm({ fetchWeirdItems }) {
-  const [newItem, setNewItem] = useState("");
+export default function AddItemForm() {
+  const [itemName, setItemName] = useState("");
+  const [description, setDescription] = useState("");
+  const [userId, setUserId] = useState("");
+  const [users, setUsers] = useState([]);
+  const navigate = useNavigate();
 
-  const addItem = async () => {
-    if (newItem.trim().length < 3) {
-      toast.error("Name must be at least 3 characters long.");
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/users");
+        const data = await res.json();
+        setUsers(data);
+      } catch (error) {
+        toast.error("Failed to load users");
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!userId) {
+      toast.error("Please select a user!");
       return;
     }
 
-    const newItemObj = {
-      name: newItem,
-      description: "A newly added weird item!",
-      imageUrl: "https://placehold.co/100",
-    };
+    console.log("Sending to backend:", {
+      name: itemName,
+      description,
+      created_by: userId,
+    });
 
     try {
       const response = await fetch("http://localhost:3000/api/entities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newItemObj),
+        body: JSON.stringify({
+          name: itemName,
+          description,
+          created_by: userId,
+        }),
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
-        fetchWeirdItems();
-        setNewItem("");
-        toast.success("Item added successfully!");
+        toast.success("Item added!");
+        setItemName("");
+        setDescription("");
+        setUserId("");
+
+        navigate("/");
       } else {
-        toast.error(data.error || "Failed to add item.");
+        toast.error(data.error || "Error adding item.");
       }
     } catch (error) {
-      toast.error("Error adding weird fridge item.");
-      console.error("Error:", error);
+      toast.error("Something went wrong!");
+      console.error("POST error:", error);
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-3 w-full max-w-sm">
+    <form onSubmit={handleSubmit} className="p-6 max-w-md bg-white rounded shadow text-black">
+      <h2 className="text-2xl mb-4 font-bold">Add New Item</h2>
+
+      {/* Dropdown for selecting user */}
+      <select
+        value={userId}
+        onChange={(e) => setUserId(e.target.value)}
+        className="p-2 border rounded-md w-full text-black"
+        required
+      >
+        <option value="">Select User</option>
+        {users.map((user) => (
+          <option key={user._id} value={user._id}>
+            {user.username}
+          </option>
+        ))}
+      </select>
+
+      {/* Item Name */}
       <input
         type="text"
-        placeholder="Enter a weird item..."
-        value={newItem}
-        onChange={(e) => setNewItem(e.target.value)}
-        className="p-2 border border-gray-300 rounded-md text-lg w-full shadow-md focus:ring-2 focus:ring-purple-500"
+        placeholder="Item name"
+        value={itemName}
+        onChange={(e) => setItemName(e.target.value)}
+        className="mb-4 p-2 border rounded w-full text-black"
+        required
       />
+
+      {/* Description */}
+      <textarea
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="mb-4 p-2 border rounded w-full text-black"
+        required
+      ></textarea>
+
       <button
-        onClick={addItem}
-        className="bg-purple-600 text-white px-4 py-2 rounded-md font-bold shadow-lg hover:bg-purple-700 transition"
+        type="submit"
+        className="bg-blue-600 text-white px-4 py-2 rounded-md font-bold shadow-md hover:bg-blue-700 transition"
       >
-        Submit
+        Add Item
       </button>
-    </div>
+    </form>
   );
 }

@@ -1,93 +1,88 @@
-import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
+import AddUserForm from "./components/AddUserForm";
+import AddItemForm from "./components/AddItemForm";
 import "react-toastify/dist/ReactToastify.css";
-import WeirdFridgeItem from "./components/WeirdFridgeItem";
-import UpdateEntityForm from "./components/UpdateEntityForm";
-import AddItemPage from "./components/AddItemPage"; // New Page
 
 export default function App() {
-  useEffect(() => {
-    document.title = "Weirdest Fridge Items";
-    fetchWeirdItems();
-  }, []);
-
   const [weirdItems, setWeirdItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
 
-  // Fetch data from backend
   const fetchWeirdItems = async () => {
     try {
       const response = await fetch("http://localhost:3000/api/entities");
       const data = await response.json();
       setWeirdItems(data);
     } catch (error) {
-      console.error("Error fetching weird fridge items:", error);
-      toast.error("Failed to fetch fridge items.");
+      toast.error("Failed to fetch items");
+      console.error(error);
     }
   };
 
-  // Delete an entity
-  const deleteEntity = async (id) => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/entities/${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        toast.success("Entity deleted successfully!");
-        fetchWeirdItems();
-      } else {
-        toast.error("Failed to delete entity.");
-      }
-    } catch (error) {
-      toast.error("Error deleting entity.");
-    }
-  };
+  useEffect(() => {
+    fetchWeirdItems();
+  }, []);
 
   return (
     <Router>
-      <div className="min-h-screen flex flex-col items-center justify-center text-center">
-        <ToastContainer /> {/* Toast Notification Container */}
-        <h1 className="text-4xl font-bold">Weirdest Fridge Items</h1>
-
-        <nav className="mt-4">
-          <Link to="/" className="text-blue-500 mr-4">Home</Link>
-          <Link to="/add" className="text-green-500">Add Item</Link>
-        </nav>
+      <div className="min-h-screen p-4 bg-gray-100 flex flex-col items-center">
+        <h1 className="text-4xl font-bold mb-6 text-black">Weirdest Refrigerator Items 🧊</h1>
 
         <Routes>
+          {/* Homepage showing item list and buttons */}
           <Route
             path="/"
             element={
-              <div className="mt-6">
-                <h2 className="text-2xl">Items List</h2>
-                <ul className="mt-3">
-                  {weirdItems.map((item) => (
-                    <li key={item._id} className="mt-2">
-                      <span
-                        className="text-blue-600 cursor-pointer"
-                        onClick={() => setSelectedItem(item)}
+              <div className="w-full max-w-3xl">
+                <div className="flex justify-end gap-3 mb-4">
+                  <Link
+                    to="/add-user"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold shadow-md hover:bg-blue-700 transition"
+                  >
+                    ➕ Add User
+                  </Link>
+                  <Link
+                    to="/add-item"
+                    className="bg-green-600 text-white px-4 py-2 rounded-md font-semibold shadow-md hover:bg-green-700 transition"
+                  >
+                    ➕ Add Item
+                  </Link>
+                </div>
+
+                <div className="grid gap-4">
+                  {weirdItems.length > 0 ? (
+                    weirdItems.map((item) => (
+                      <div
+                        key={item._id}
+                        className="border rounded-lg p-4 shadow bg-white text-black"
                       >
-                        {item.name}
-                      </span>
-                      <button
-                        onClick={() => deleteEntity(item._id)}
-                        className="ml-4 bg-red-500 text-white px-2 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                {selectedItem && (
-                  <UpdateEntityForm entity={selectedItem} onUpdate={fetchWeirdItems} />
-                )}
+                        <h2 className="text-xl font-bold text-black">{item.name}</h2>
+                        <p className="text-black">{item.description}</p>
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-full h-48 object-cover mt-2 rounded"
+                          />
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-black">No items found.</p>
+                  )}
+                </div>
               </div>
             }
           />
-          <Route path="/add" element={<AddItemPage />} />
+
+          {/* Add User Page */}
+          <Route path="/add-user" element={<AddUserForm />} />
+
+          {/* Add Item Page with callback to refetch items */}
+          <Route path="/add-item" element={<AddItemForm fetchWeirdItems={fetchWeirdItems} />} />
         </Routes>
+
+        <ToastContainer />
       </div>
     </Router>
   );
