@@ -7,10 +7,16 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
   const [weirdItems, setWeirdItems] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState("all");
 
-  const fetchWeirdItems = async () => {
+  const fetchWeirdItems = async (userId = "all") => {
     try {
-      const response = await fetch("http://localhost:3000/api/entities");
+      const url =
+        userId === "all"
+          ? "http://localhost:3000/api/entities"
+          : `http://localhost:3000/api/entities/user/${userId}`;
+      const response = await fetch(url);
       const data = await response.json();
       setWeirdItems(data);
     } catch (error) {
@@ -19,8 +25,20 @@ export default function App() {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/users");
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      toast.error("Failed to fetch users");
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchWeirdItems();
+    fetchUsers();
   }, []);
 
   return (
@@ -29,7 +47,6 @@ export default function App() {
         <h1 className="text-4xl font-bold mb-6 text-black">Weirdest Refrigerator Items 🧊</h1>
 
         <Routes>
-          {/* Homepage showing item list and buttons */}
           <Route
             path="/"
             element={
@@ -47,6 +64,29 @@ export default function App() {
                   >
                     ➕ Add Item
                   </Link>
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="user-select" className="font-semibold mr-2 text-black">
+                    Filter by User:
+                  </label>
+                  <select
+                    id="user-select"
+                    className="p-2 border rounded-md text-black"
+                    value={selectedUser}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedUser(value);
+                      fetchWeirdItems(value);
+                    }}
+                  >
+                    <option value="all">All Users</option>
+                    {users.map((user) => (
+                      <option key={user.id || user._id} value={user.id || user._id}>
+                        {user.username}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="grid gap-4">
@@ -75,10 +115,7 @@ export default function App() {
             }
           />
 
-          {/* Add User Page */}
           <Route path="/add-user" element={<AddUserForm />} />
-
-          {/* Add Item Page with callback to refetch items */}
           <Route path="/add-item" element={<AddItemForm fetchWeirdItems={fetchWeirdItems} />} />
         </Routes>
 

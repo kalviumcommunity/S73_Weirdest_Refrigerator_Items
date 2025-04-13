@@ -1,4 +1,5 @@
 import Entity from '../models/entitySchema.js';
+import db from "../config/db.js";
 
 const validateEntity = (name, description, imageUrl, created_by) => {
     if (!description || description.trim().length < 5) {
@@ -32,27 +33,27 @@ export const createEntity = async (req, res) => {
     }
 };
 
-export const getEntities = async (req, res) => {
-    const { created_by } = req.query;
+// export const getEntities = async (req, res) => {
+//     const { created_by } = req.query;
 
-    try {
-        let filter = {};
-        if (created_by) {
-            filter.created_by = created_by;
-        }
+//     try {
+//         let filter = {};
+//         if (created_by) {
+//             filter.created_by = created_by;
+//         }
 
-        const entities = await Entity.find(filter).populate("created_by");
+//         const entities = await Entity.find(filter).populate("created_by");
 
-        if (entities.length === 0) {
-            return res.status(404).json({ message: "No entities found!" });
-        }
+//         if (entities.length === 0) {
+//             return res.status(404).json({ message: "No entities found!" });
+//         }
 
-        res.status(200).json(entities);
-    } catch (err) {
-        console.error("Error fetching entities:", err);
-        res.status(500).json({ error: "Internal Server Error!" });
-    }
-};
+//         res.status(200).json(entities);
+//     } catch (err) {
+//         console.error("Error fetching entities:", err);
+//         res.status(500).json({ error: "Internal Server Error!" });
+//     }
+// };
 
 export const updateEntity = async (req, res) => {
     try {
@@ -91,3 +92,29 @@ export const deleteEntity = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error!" });
     }
 };
+
+export const getEntitiesByUser = async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const [entities] = await db.execute(
+        "SELECT * FROM entities WHERE created_by = ?",
+        [userId]
+      );
+      res.status(200).json(entities);
+    } catch (error) {
+      console.error("Error fetching entities by user:", error);
+      res.status(500).json({ error: "Failed to fetch user's entities" });
+    }
+  };
+
+export const getEntities = async (req, res) => {
+    try {
+      const q = "SELECT * FROM entities";
+      const [data] = await db.query(q);
+      res.json(data);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to fetch entities" });
+    }
+};
+  
